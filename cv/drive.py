@@ -30,12 +30,18 @@ class Drive:
   def turn(self, speed):
     self._queue.put(("turn", speed))
 
+  def drive(self, speed):
+    self._queue.put(("drive", speed))
+
   def stop(self):
     self._queue.put(("stop", None))
 
   def _stop(self):
     for pin in [RIGHT_FORWARD, RIGHT_BACKWARD, LEFT_FORWARD, LEFT_BACKWARD]:
       self._io.set_PWM_dutycycle(pin, 0)
+
+  def _scale_speed(self, speed):
+    return MIN_SPEED + (MAX_SPEED / 6 - MIN_SPEED) * abs(speed)
 
   def _run(self):
     while True:
@@ -50,12 +56,21 @@ class Drive:
           self._stop()
 
         elif cmd == "turn":
-          speed = MIN_SPEED + (MAX_SPEED / 4 - MIN_SPEED) * abs(param)
+          speed = self._scale_speed(param)
           if param < 0:
             self._io.set_PWM_dutycycle(LEFT_BACKWARD, speed)
             self._io.set_PWM_dutycycle(RIGHT_FORWARD, speed)
           else:
             self._io.set_PWM_dutycycle(RIGHT_BACKWARD, speed)
+            self._io.set_PWM_dutycycle(LEFT_FORWARD, speed)
+
+        elif cmd == "drive":
+          speed = self._scale_speed(param)
+          if param < 0:
+            self._io.set_PWM_dutycycle(RIGHT_BACKWARD, speed)
+            self._io.set_PWM_dutycycle(LEFT_BACKWARD, speed)
+          else:
+            self._io.set_PWM_dutycycle(RIGHT_FORWARD, speed)
             self._io.set_PWM_dutycycle(LEFT_FORWARD, speed)
 
       except KeyboardInterrupt:

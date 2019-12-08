@@ -6,6 +6,13 @@ WHITE = (255,255,255)
 BLUE= (255,0,0)
 RED = (0,0,255)
 
+MIN_AREA = 10.0
+MAX_AREA = 12000.0
+MAX_ROUNDNESS = 4.0
+
+DETECT_MODES = [cv2.CONTOURS_MATCH_I1, cv2.CONTOURS_MATCH_I2, cv2.CONTOURS_MATCH_I3]
+DETECT_THRESHOLD = 0.10
+
 def build_cross_image(width=640, height=480, thickness=50):
   image = numpy.zeros((height, width, 3), dtype="uint8")
   length = width // 4
@@ -35,24 +42,22 @@ class PositionsFinder:
     if self._debug:
       draw = image.copy()
 
-    for contour in contours_fron_image(image, cv2.RETR_TREE):
+    for contour in contours_fron_image(image, mode=cv2.RETR_TREE):
       moments = cv2.moments(contour)
       area = moments['m00']
-      if area < 10.0: continue # too small
-      if area > 8000.0: continue # too big
+      if area < MIN_AREA: continue # too small
+      if area > MAX_AREA: continue # too big
 
       length = cv2.arcLength(contour, True)
       roundness = (length * length) / (moments['m00'] * 4 * numpy.pi)
-      if roundness < 4.0: continue # too round
+      if roundness < MAX_ROUNDNESS: continue # too round
 
       color = BLUE
-      match = [cv2.matchShapes(self._reference_contour, contour, mode, 0.0) \
-                for mode in [cv2.CONTOURS_MATCH_I1, cv2.CONTOURS_MATCH_I2, cv2.CONTOURS_MATCH_I3]]
-      if all(m < 0.1 for m in match):
+      match = [cv2.matchShapes(self._reference_contour, contour, mode, 0.0) for mode in DETECT_MODES]
+      if all(m < DETECT_THRESHOLD for m in match):
         cx = (moments['m10'] / moments['m00']) / width
         cy = (moments['m01'] / moments['m00']) / height
-        relative_area = area / (width * height)
-        yield (cx, cy, relative_area)
+        yield (cx, cy, area)
         color = RED
 
       if self._debug:
