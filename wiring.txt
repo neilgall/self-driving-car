@@ -1,0 +1,7 @@
+Orange = +5V
+Purple = GND
+
+Purple = BCM 21 = Left Enable
+Gray   = BCM 22 = Left Direction
+White  = BCM 23 = Right Direction
+Black  = BCM 24 = Right Enable
