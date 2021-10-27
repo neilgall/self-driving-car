@@ -6,7 +6,7 @@ Click==7.0
 cloudpickle==1.2.2
 cvlib==0.1.8
 cycler==0.10.0
-dask==2.7.0
+dask==2021.10.0
 decorator==4.4.1
 dlib==19.8.1
 face-recognition==1.2.3
